@@ -241,6 +241,14 @@ namespace acre {
                     continue;
                 }
 
+                /* Do not try to get the path of objects which are not disk
+                files. NtQueryObject and GetFinalPathNameByHandle will hang if
+                the specified handle is not of the type FILE_TYPE_DISK. */
+                if (GetFileType(dupHandle) != FILE_TYPE_DISK) {
+                    CloseHandle(dupHandle);
+                    continue;
+                }
+
                 /* Query the object type. */
                 objectTypeInfo = (POBJECT_TYPE_INFORMATION)malloc(0x1000);
                 if (!NT_SUCCESS(NtQueryObject(
@@ -297,8 +305,6 @@ namespace acre {
                 /* Cast our buffer into an UNICODE_STRING. */
                 objectName = *(PUNICODE_STRING)objectNameInfo;
                
-                
-
                 /* Print the information! */
                 if (objectName.Length)
                 {
